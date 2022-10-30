@@ -26,3 +26,12 @@ def add_kwargs_to_url(url, **kwargs):
             v = str(v).lower()
         url += f"&{k.replace('_', '-')}={v}"
     return urllib.parse.quote(url)
+
+
+def create_kwarg_dict(**kwargs):
+    kwarg_dict = {}
+    for k, v in kwargs:
+        if isinstance(v, bool):
+            v = str(v).lower()
+        kwarg_dict[k.replace('_', '-')] = v
+    return kwarg_dict

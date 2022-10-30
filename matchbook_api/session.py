@@ -13,8 +13,8 @@ class Session:
             self.session_logging_file = "session.log"
             logging.basicConfig(filename=self.session_logging_file, encoding='utf-8', level=logging.INFO)
 
-    def post(self, url, payload_data, headers=DEFAULT_HEADERS):
-        r = self.session.post(self.url + url, data=payload_data, headers=headers)
+    def post(self, url, json, headers=DEFAULT_HEADERS):
+        r = self.session.post(self.url + url, json=json, headers=headers)
         error = check_http_status_code(r)
         if isinstance(error, Exception):
             return error
