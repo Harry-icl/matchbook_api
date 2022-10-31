@@ -11,7 +11,7 @@ class Session:
         self.session_token = None
         if log:
             self.session_logging_file = "session.log"
-            logging.basicConfig(filename=self.session_logging_file, encoding='utf-8', level=logging.INFO)
+            logging.basicConfig(filename=self.session_logging_file, level=logging.INFO)
 
     def post(self, url, json, headers=DEFAULT_HEADERS):
         r = self.session.post(self.url + url, json=json, headers=headers)
@@ -37,6 +37,7 @@ class Session:
         r = self.session.get(self.url + url, headers=headers)
         error = check_http_status_code(r)
         if isinstance(error, Exception):
+            print(url)
             return error
         else:
             logging.info("HTTP GET request returned 200 (success).")

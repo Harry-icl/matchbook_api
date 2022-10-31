@@ -1,26 +1,28 @@
 import logging
-from numpy import datetime64
 from typing import List
+import os
 
 from .session import Session
 from .utils import add_kwargs_to_url, create_kwarg_dict
 
 
 class Client:
-    def __init__(self, username, password, log: bool = True):
+    def __init__(self, username: str = None, password: str = None, log: bool = True):
         self.username = username
         self.password = password
         self.session = Session(log)
         self.session_token = None
         if log:
             self.client_logging_file = "client.log"
-            logging.basicConfig(filename=self.client_logging_file, encoding='utf-8', level=logging.INFO)
+            logging.basicConfig(filename=self.client_logging_file, level=logging.INFO)
     
     def login(self):
         url = "bpapi/rest/security/session"
         payload = {
-            "username": self.username,
-            "password": self.password
+            "username": (self.username if self.username is not None
+                         else os.environ.get('matchbook_username')),
+            "password": (self.password if self.password is not None
+                         else os.environ.get('matchbook_password'))
         }
         headers = {
             "content-type": "application/json;charset=UTF-8",
@@ -35,6 +37,7 @@ class Client:
             self.session_token = data['session-token']
             self.user_id = data['user-id']
             logging.info("Login successful.")
+            return data
 
     def logout(self):
         url = "bpapi/rest/security/session"
@@ -55,6 +58,7 @@ class Client:
             return False
         else:
             logging.info("Session check: active.")
+            return True
 
     def get_account(self):
         url = "edge/rest/account"
@@ -69,8 +73,8 @@ class Client:
         return data
 
     def get_sports(self, offset: int = 0, per_page: int = 20, order: str = "name asc"):
-        url = "edge/rest/lookups/sports?"
         params = locals()
+        url = "edge/rest/lookups/sports?"
         del params['self']
         url = add_kwargs_to_url(url, **params)
 
@@ -78,8 +82,8 @@ class Client:
         return data
 
     def get_navigation(self, offset: int = 0, per_page: int = 20):
-        url = "edge/rest/navigation?"
         params = locals()
+        url = "edge/rest/navigation?"
         del params['self']
         url = add_kwargs_to_url(url, **params)
 
@@ -93,8 +97,8 @@ class Client:
                    price_mode: str = "expanded",
                    include_event_participants: bool = False,
                    exclude_mirrored_prices: bool = False, **kwargs):
-        url = "edge/rest/events?"
         params = locals()
+        url = "edge/rest/events?"
         del params['self']
         url = add_kwargs_to_url(url, **params)
 
@@ -106,8 +110,8 @@ class Client:
                   price_depth: int = 3, price_mode: str = "expanded",
                   include_event_participants: bool = False,
                   exclude_mirrored_prices: bool = False, **kwargs):
-        url = f"edge/rest/events/{event_id}?"
         params = locals()
+        url = f"edge/rest/events/{event_id}?"
         del params['self']
         del params['event_id']
         url = add_kwargs_to_url(url, **params)
@@ -121,8 +125,8 @@ class Client:
                     odds_type: str = "DECIMAL", include_prices: bool = False,
                     price_depth: int = 3, price_mode: str = "expanded",
                     exclude_mirrored_prices: bool = False, **kwargs):
-        url = f"edge/rest/events/{event_id}/markets?"
         params = locals()
+        url = f"edge/rest/events/{event_id}/markets?"
         del params['self']
         del params['event_id']
         url = add_kwargs_to_url(url, **params)
@@ -135,8 +139,8 @@ class Client:
                    include_prices: bool = False, price_depth: int = 3,
                    price_mode: str = "expanded",
                    exclude_mirrored_prices: bool = False, **kwargs):
-        url = f"edge/rest/events/{event_id}/markets/{market_id}?"
         params = locals()
+        url = f"edge/rest/events/{event_id}/markets/{market_id}?"
         del params['self']
         del params['event_id']
         del params['market_id']
@@ -153,8 +157,8 @@ class Client:
                     exchange_type: str = "back-lay",
                     odds_type: str = "DECIMAL",
                     exclude_mirrored_prices: bool = False, **kwargs):
-        url = f"edge/rest/events/{event_id}/markets/{market_id}/runners?"
         params = locals()
+        url = f"edge/rest/events/{event_id}/markets/{market_id}/runners?"
         del params['self']
         del params['event_id']
         del params['market_id']
@@ -168,9 +172,9 @@ class Client:
                    price_mode: str = "expanded",
                    exchange_type: str = "back-lay", odds_type: str = "DECIMAL",
                    exclude_mirrored_prices: bool = False, **kwargs):
+        params = locals()
         url = (f"edge/rest/events/{event_id}/markets/{market_id}/runners/"
                f"{runner_id}?")
-        params = locals()
         del params['self']
         del params['event_id']
         del params['market_id']
@@ -184,9 +188,9 @@ class Client:
                    exchange_type: str = "back-lay", odds_type: str = "DECIMAL",
                    depth: int = 3, price_mode: str = "expanded",
                    exclude_mirrored_prices: bool = False, **kwargs):
+        params = locals()
         url = (f"edge/rest/events/{event_id}/markets/{market_id}/runners/"
                f"{runner_id}/prices?")
-        params = locals()
         del params['self']
         del params['event_id']
         del params['market_id']
@@ -200,8 +204,8 @@ class Client:
                             odds_type: str = "DECIMAL", price_depth: int = 3,
                             price_mode: str = "expanded",
                             old_format: bool = False, **kwargs):
-        url = "edge/rest/popular-markets?"
         params = locals()
+        url = "edge/rest/popular-markets?"
         del params['self']
         url = add_kwargs_to_url(url, **params)
 
@@ -209,8 +213,8 @@ class Client:
         return data
     
     def get_popular_sports(self, num_sports: int = 5):
-        url = "edge/rest/popular/sports?"
         params = locals()
+        url = "edge/rest/popular/sports?"
         del params['self']
         url = add_kwargs_to_url(url, **params)
 
@@ -278,8 +282,8 @@ class Client:
     
     def get_offers(self, offset: int = 0, per_page: int = 20,
                    include_edits: bool = False, **kwargs):
-        url = "edge/rest/v2/offers?"
         params = locals()
+        url = "edge/rest/v2/offers?"
         del params['self']
         url = add_kwargs_to_url(url, **params)
 
@@ -295,8 +299,8 @@ class Client:
     def get_aggregated_matched_bets(self, offset: int = 0, per_page: int = 20,
                                     aggregation_type: str = "average",
                                     **kwargs):
-        url = "edge/rest/bets/matched/aggregated?"
         params = locals()
+        url = "edge/rest/bets/matched/aggregated?"
         del params['self']
         url = add_kwargs_to_url(url, **params)
 
@@ -310,8 +314,8 @@ class Client:
         return data
 
     def get_positions(self, offset: int = 0, per_page: int = 20, **kwargs):
-        url = "edge/rest/account/positions?"
         params = locals()
+        url = "edge/rest/account/positions?"
         del params['self']
         url = add_kwargs_to_url(url, **params)
 
@@ -332,4 +336,84 @@ class Client:
         data = self.session.get(url)
         return data
 
+    def get_new_wallet_transactions(self, offset: int = 0, per_page: int = 20,
+                                    **kwargs):
+        params = locals()
+        url = "edge/rest/reports/v1/transactions?"
+        del params['self']
+        url = add_kwargs_to_url(url, **params)
+
+        data = self.session.get(url)
+        return data
     
+    def get_current_offers(self, offset: int = 0, per_page: int = 20,
+                           odds_type: str = "DECIMAL", **kwargs):
+        params = locals()
+        url = "edge/rest/reports/v2/offers/current?"
+        del params['self']
+        url = add_kwargs_to_url(url, **params)
+
+        data = self.session.get(url)
+        return data
+
+    def get_current_bets(self, offset: int = 0, per_page: int = 20,
+                         odds_type: str = "DECIMAL", **kwargs):
+        params = locals()
+        url = "edge/rest/reports/v2/bets/current?"
+        del params['self']
+        url = add_kwargs_to_url(url, **params)
+
+        data = self.session.get(url)
+        return data
+
+    def get_settled_bets(self, offset: int = 0, per_page: int = 20, **kwargs):
+        params = locals()
+        url = "edge/rest/reports/v2/bets/settled?"
+        del params['self']
+        url = add_kwargs_to_url(url, **params)
+
+        data = self.session.get(url)
+        return data
+    
+    def get_countries(self):
+        url = "bpapi/rest/lookups/countries"
+
+        data = self.session.get(url)
+        return data
+
+    def get_regions(self, country_id: int):
+        url = f"bpapi/rest/lookups/regions/{country_id}"
+
+        data = self.session.get(url)
+        return data
+
+    def get_currencies(self):
+        url = "bpapi/rest/lookups/currencies"
+
+        data = self.session.get(url)
+        return data
+    
+    def get_heartbeat_status(self):
+        url = "edge/rest/v1/heartbeat"
+
+        data = self.session.get(url)
+        return data
+    
+    def post_heartbeat(self, timeout: int = 20):
+        url = "edge/rest/v1/heartbeat"
+        payload = {"timeout": timeout}
+        headers = {
+            "accept": "application/json",
+            "User-Agent": "api-doc-test-client",
+            "content-type": "application/json",
+            "Accept-Encoding": "gzip"
+        }
+
+        data = self.session.post(url, payload, headers)
+        return data
+
+    def delete_heartbeat(self):
+        url = "edge/rest/v1/heartbeat"
+
+        data = self.session.delete(url)
+        return data

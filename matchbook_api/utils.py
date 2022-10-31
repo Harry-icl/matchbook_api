@@ -11,8 +11,10 @@ DEFAULT_HEADERS = {
 
 def check_http_status_code(r):
     if r.status_code != 200:
-        logging.error(f"HTTP error {r.status_code}: {r.json()['errors']['messages']}")
-        return HTTPException(f"HTTP error {r.status_code}: {r.json()['errors']['messages']}")
+        logging.error(f"HTTP error {r.status_code}: "
+                      f"{r.json()['errors'][0]['messages']}")
+        return HTTPException(f"HTTP error {r.status_code}: "
+                             f"{r.json()['errors'][0]['messages']}")
 
 
 def retrieve_data(r):
@@ -21,16 +23,19 @@ def retrieve_data(r):
 
 
 def add_kwargs_to_url(url, **kwargs):
-    for k, v in kwargs:
+    for k, v in kwargs.items():
         if isinstance(v, bool):
             v = str(v).lower()
-        url += f"&{k.replace('_', '-')}={v}"
-    return urllib.parse.quote(url)
+        url += (urllib.parse.quote(k.replace('_', '-'))
+                + "="
+                + urllib.parse.quote(str(v))
+                + "&")
+    return url[:-1]
 
 
 def create_kwarg_dict(**kwargs):
     kwarg_dict = {}
-    for k, v in kwargs:
+    for k, v in kwargs.items():
         if isinstance(v, bool):
             v = str(v).lower()
         kwarg_dict[k.replace('_', '-')] = v
