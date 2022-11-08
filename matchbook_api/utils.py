@@ -11,6 +11,7 @@ DEFAULT_HEADERS = {
 
 def check_http_status_code(r):
     if r.status_code != 200:
+        print(r.json())
         logging.error(f"HTTP error {r.status_code}: "
                       f"{r.json()['errors'][0]['messages']}")
         return HTTPException(f"HTTP error {r.status_code}: "
